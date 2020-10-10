@@ -9,13 +9,21 @@
 # File name: diy-part2.sh
 # Description: OpenWrt DIY script part 2 (After Update feeds)
 #
-wget "https://raw.githubusercontent.com/quintus-lab/Openwrt-R2S/master/patches/for_r2s_18.06.patch"
+echo "VersionDate=$(git show -s --date=short --format="%cd")"
+echo "VersionDate::$VersionDate"
+echo "DATE::$(date "+%Y-%m-%d %H:%M:%S")"
+echo "Build_Date::$(date +%Y.%m.%d)"
+echo "Build_Date=$(date +%Y.%m.%d)" >> $GITHUB_ENV
 
-patch -p1 < ./for_r2s_18.06.patch
 
-wget -O package/lean/default-settings/files/zzz-default-settings https://github.com/quintus-lab/Openwrt-R2S/raw/master/script/zzz-default-settings-18.06
+./scripts/feeds update -a && ./scripts/feeds install -a
+
+patch -p1 < ./project-openwrt.patch
 
 # svn co https://github.com/coolsnowwolf/lede/trunk/package/lean/luci-app-cifsd package/lean/luci-app-cifsd
+
+echo -e '\n '$Build_Date'\n'  >> package/lean/default-settings/files/openwrt_banner
+sed -i 's/'$Build_Date'/g' package/lean/default-settings/files/zzz-default-settings
 
 # Modify default IP
 sed -i 's/192.168.1.1/192.168.3.1/g' package/base-files/files/bin/config_generate
